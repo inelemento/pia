@@ -6,13 +6,12 @@ import { TranslateService } from '@ngx-translate/core';
 import * as d3 from 'd3';
 
 @Component({
-  selector: 'app-overview-risks',
+  selector: `.app-overview-risks`,
   templateUrl: './overview-risks.component.html',
   styleUrls: ['./overview-risks.component.scss'],
   providers: [PiaService]
 })
 export class OverviewRisksComponent implements OnInit {
-
   data = [];
   items = [];
   linkFromTo = [];
@@ -32,27 +31,32 @@ export class OverviewRisksComponent implements OnInit {
     });
   }
 
+  /**
+   * Initialize the data.
+   * @private
+   * @memberof OverviewRisksComponent
+   */
   private async initData() {
     await this._piaService.getPIA();
     const dataTags = [
       {
         id: 1,
-        name: 'Impacts potentiels',
+        name: this._translateService.instant('overview-risks.potential_impacts'),
         reference_to: [321, 331, 341]
       },
       {
         id: 2,
-        name: 'Menaces',
+        name: this._translateService.instant('overview-risks.threat'),
         reference_to: [322, 332, 342]
       },
       {
         id: 3,
-        name: 'Sources',
+        name: this._translateService.instant('overview-risks.sources'),
         reference_to: [323, 333, 343]
       },
       {
         id: 4,
-        name: 'Mesures',
+        name: this._translateService.instant('overview-risks.measures'),
         reference_to: [324, 334, 344]
       }
     ];
@@ -79,6 +83,11 @@ export class OverviewRisksComponent implements OnInit {
     }
   }
 
+  /**
+   * Initialize the SVG.
+   * @private
+   * @memberof OverviewRisksComponent
+   */
   private async initSvg() {
     const dataNav = await this._appDataService.getDataNav();
     this.svg = d3.select('svg');
@@ -225,7 +234,7 @@ export class OverviewRisksComponent implements OnInit {
             const y1 = bb.y;
             const x2 = x - 4 - 100;
             const y2 = y;
-            this.svg.append('path').attr('class', 'path_' + id)
+            this.svg.append('path').attr('class', 'fadeIn path_' + id)
                               .attr('data-id', bb.from + '-' + id)
                               .attr('d', 'M' + bb.x + ',' + bb.y + ' C' + x1 + ',' + y1 + ' ' + x2 + ',' + y2 + ' ' + (x - 8)
                                     + ',' + (y + 2));
@@ -242,10 +251,25 @@ export class OverviewRisksComponent implements OnInit {
     });
   }
 
+  /**
+   * Parse the questions.
+   * @private
+   * @param {any} questionGauges - Any questions gauges.
+   * @param {any} g - SVG element.
+   * @param {any} x - Position X.
+   * @param {any} y - Position Y.
+   * @returns {Promise}
+   * @memberof OverviewRisksComponent
+   */
   private async parseQuestions(questionGauges, g, x, y) {
     let i = 0;
     const data = [];
-    const gauges_value = { 1: 'Négligeable', 2: 'Limitée', 3: 'Importante', 4: 'Maximale' };
+    const gauges_value = {
+      1: this._translateService.instant('overview-risks.negligible'),
+      2: this._translateService.instant('overview-risks.limited'),
+      3: this._translateService.instant('overview-risks.important'),
+      4: this._translateService.instant('overview-risks.maximal')
+    };
     return new Promise((resolve, reject) => {
       questionGauges.forEach(async question => {
         i++;
@@ -253,10 +277,9 @@ export class OverviewRisksComponent implements OnInit {
         await answerModel.getByReferenceAndPia(this._piaService.pia.id, question.id);
         if (answerModel.data && answerModel.data.gauge > 0) {
           const value = answerModel.data.gauge;
-          const name = this._translateService.instant(question.highlight_words).split(' ')[0];
+          const name = this._translateService.instant('overview-risks.' + question.cartography);
           y += 25;
-          g.append('text').attr('x', x).attr('y', y).text(name + ' :').attr('class', 'gauge_prefix');
-          g.append('text').attr('x', x + (name.length * 7)).attr('y', y).text(gauges_value[value]).attr('class', 'gauge_bold');
+          g.append('text').attr('x', x).attr('y', y).text(name + ' : ' + gauges_value[value]).attr('class', 'gauge_prefix');
           y += 10;
           g.append('line').attr('stroke-width', 4).style('stroke', '#eee').attr('x1', x)
             .attr('y1', y).attr('x2', x + 200).attr('y2', y);

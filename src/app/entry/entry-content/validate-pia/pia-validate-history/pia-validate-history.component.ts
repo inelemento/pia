@@ -3,6 +3,7 @@ import {Component, ElementRef, OnInit} from '@angular/core';
 import { Pia } from 'app/entry/pia.model';
 
 import { PiaService } from 'app/entry/pia.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-pia-validate-history',
@@ -12,7 +13,9 @@ import { PiaService } from 'app/entry/pia.service';
 })
 export class PiaValidateHistoryComponent implements OnInit {
 
-  constructor(private el: ElementRef, private _piaService: PiaService) { }
+  constructor(private el: ElementRef,
+              public _piaService: PiaService,
+              private _translateService: TranslateService) { }
 
   ngOnInit() {
     this._piaService.getPIA();
@@ -42,7 +45,7 @@ export class PiaValidateHistoryComponent implements OnInit {
 
   /**
    * Displays the validation history.
-   * @returns True if the PIA is validated and that there was a rejection before this validation, False otherwise.
+   * @returns {boolean} - True if the PIA is validated and that there was a rejection before this validation, False otherwise.
    * @memberof PiaValidateHistoryComponent
    */
   showValidationHistory() {
@@ -53,7 +56,7 @@ export class PiaValidateHistoryComponent implements OnInit {
 
   /**
    * Displays the rejection history.
-   * @returns {boolean} True if the PIA is refused, False otherwise.
+   * @returns {boolean} - True if the PIA is refused, False otherwise.
    * @memberof PiaValidateHistoryComponent
    */
   showRejectionHistory() {

@@ -11,19 +11,17 @@ import { Comment } from 'app/entry/entry-content/comments/comment.model';
 import { Attachment } from 'app/entry/attachments/attachment.model';
 
 import { ModalsService } from 'app/modals/modals.service';
-import { EvaluationService } from 'app/entry/entry-content/evaluations/evaluations.service';
 import { ActionPlanService } from 'app/entry/entry-content/action-plan//action-plan.service';
 
 @Injectable()
 export class PiaService {
 
-  pias: any[];
+  pias = [];
   pia: Pia = new Pia();
   answer: Answer = new Answer();
   data: { sections: any };
 
   constructor(private _router: Router, private route: ActivatedRoute,
-              private _evaluationService: EvaluationService,
               private _appDataService: AppDataService,
               private _modalsService: ModalsService, private http: Http) {
                 this._appDataService.getDataNav().then((dataNav) => {
@@ -32,14 +30,14 @@ export class PiaService {
               }
 
   /**
-   * Gets the PIA.
-   * @return the PIA object.
+   * Get the PIA.
+   * @return {Promise}
+   * @memberof PiaService
    */
   async getPIA() {
     return new Promise((resolve, reject) => {
       const piaId = parseInt(this.route.snapshot.params['id'], 10);
       this.pia.get(piaId).then(() => {
-        this._evaluationService.setPia(this.pia);
         resolve();
       });
     });
@@ -47,6 +45,7 @@ export class PiaService {
 
   /**
    * Allows an user to remove a PIA.
+   * @memberof PiaService
    */
   removePIA() {
     const piaID = parseInt(localStorage.getItem('pia-id'), 10);
@@ -59,33 +58,47 @@ export class PiaService {
     if (localStorage.getItem('homepageDisplayMode') && localStorage.getItem('homepageDisplayMode') === 'list') {
       document.querySelector('.app-list-item[data-id="' + piaID + '"]').remove();
     } else {
-      document.querySelector('.pia-cardsBlock.pia-doingBlock[data-id="' + piaID + '"]').remove();
+      document.querySelector('.pia-cardsBlock.pia[data-id="' + piaID + '"]').remove();
     }
 
     localStorage.removeItem('pia-id');
     this._modalsService.closeModal();
   }
 
+  /**
+   * Cancel all validated evaluations.
+   * @returns {Promise}
+   * @memberof PiaService
+   */
   async cancelAllValidatedEvaluation() {
     return new Promise((resolve, reject) => {
+      let count = 0;
       let evaluation = new Evaluation();
-      evaluation.pia_id = this._evaluationService.pia.id;
+      evaluation.pia_id = this.pia.id;
       evaluation.findAll().then((entries: any) => {
-        entries.forEach(element => {
-          evaluation = new Evaluation();
-          evaluation.get(element.id).then((entry: any) => {
-            /* TODO : entry.status = 0; */
-            entry.global_status = 0;
-            entry.update();
+        if (entries && entries.length > 0) {
+          entries.forEach(element => {
+            evaluation = new Evaluation();
+            evaluation.get(element.id).then((entry: any) => {
+              entry.global_status = 0;
+              entry.update().then(() => {
+                count++;
+                if (count === entries.length) {
+                  resolve();
+                }
+              });
+            });
           });
-        });
-        resolve();
+        } else {
+          resolve();
+        }
       });
     });
   }
 
   /**
-   * Allows an user to abandon a treatment (archive a PIA)
+   * Allows an user to abandon a treatment (archive a PIA).
+   * @memberof PiaService
    */
   abandonTreatment() {
     this.pia.status = 4;
@@ -95,12 +108,23 @@ export class PiaService {
     });
   }
 
+  /**
+   * Allow an user to duplicate a PIA.
+   * @param {number} id - The PIA id.
+   * @memberof PiaService
+   */
   duplicate(id: number) {
     this.exportData(id).then((data) => {
       this.importData(data, 'COPY', true);
     });
   }
 
+  /**
+   * Allow an user to export a PIA.
+   * @param {number} id - The PIA id.
+   * @returns {Promise}
+   * @memberof PiaService
+   */
   exportData(id: number) {
     return new Promise((resolve, reject) => {
       const pia = new Pia();
@@ -141,7 +165,18 @@ export class PiaService {
     });
   }
 
-  importData(data: any, prefix: string, is_duplicate: boolean) {
+  /**
+   * Allow an user to import a PIA.
+   * @param {*} data - Data PIA.
+   * @param {string} prefix - A title prefix.
+   * @param {boolean} is_duplicate - Is a duplicate PIA?
+   * @param {boolean} [is_example] - Is the PIA example?
+   * @memberof PiaService
+   */
+  async importData(data: any, prefix: string, is_duplicate: boolean, is_example?: boolean) {
+    if (!('pia' in data) || !('dbVersion' in data.pia)) {
+      return;
+    }
     const pia = new Pia();
     pia.name = '(' + prefix + ') ' + data.pia.name;
     pia.author_name = data.pia.author_name;
@@ -158,11 +193,35 @@ export class PiaService {
     pia.created_at = data.pia.created_at;
     pia.dpos_names = data.pia.dpos_names;
     pia.people_names = data.pia.people_names;
-    pia.status = data.pia.status;
-    pia.created_at = new Date(data.pia.created_at);
-    if (data.pia.updated_at) {
-      pia.updated_at = new Date(data.pia.updated_at);
+
+    /* Set this PIA as the example PIA if needed, else default value affected on creation */
+    if (is_example) {
+      pia.is_example = true;
     }
+
+    if (is_duplicate) {
+      pia.status = 0;
+      pia.created_at = new Date();
+      pia.updated_at = new Date();
+      pia.dpos_names = null;
+      pia.dpo_status = null;
+      pia.dpo_opinion = null;
+      pia.concerned_people_searched_opinion = null;
+      pia.concerned_people_searched_content = null;
+      pia.people_names = null;
+      pia.concerned_people_status = null;
+      pia.concerned_people_opinion = null;
+    } else {
+      pia.status = parseInt(data.pia.status, 10);
+      if (Number.isNaN(pia.status)) {
+        pia.status = 0;
+      }
+      pia.created_at = new Date(data.pia.created_at);
+      if (data.pia.updated_at) {
+        pia.updated_at = new Date(data.pia.updated_at);
+      }
+    }
+
     pia.create().then((pia_id: number) => {
       pia.id = pia_id;
       // Create answers
@@ -226,6 +285,15 @@ export class PiaService {
     });
   }
 
+  /**
+   * Import all evaluations.
+   * @private
+   * @param {*} data - Data PIA.
+   * @param {number} pia_id - The PIA id.
+   * @param {boolean} is_duplicate - Is a duplicated PIA?
+   * @param {Array<any>} [oldIdToNewId] - Array to generate new id for special item.
+   * @memberof PiaService
+   */
   private importEvaluations(data: any, pia_id: number, is_duplicate: boolean, oldIdToNewId?: Array<any>) {
     if (!is_duplicate) {
       // Create evaluations
@@ -243,9 +311,13 @@ export class PiaService {
         evaluationModel.reference_to = reference_to;
         evaluationModel.action_plan_comment = evaluation.action_plan_comment;
         evaluationModel.evaluation_comment = evaluation.evaluation_comment;
-        evaluationModel.evaluation_date = new Date(evaluation.evaluation_date);
+        if (evaluation.evaluation_date) {
+          evaluationModel.evaluation_date = new Date(evaluation.evaluation_date);
+        }
         evaluationModel.gauges = evaluation.gauges;
-        evaluationModel.estimated_implementation_date = new Date(evaluation.estimated_implementation_date);
+        if (evaluation.estimated_implementation_date) {
+          evaluationModel.estimated_implementation_date = new Date(evaluation.estimated_implementation_date);
+        }
         evaluationModel.person_in_charge = evaluation.person_in_charge;
         evaluationModel.global_status = evaluation.global_status;
         evaluationModel.created_at = new Date(evaluation.created_at);
@@ -257,6 +329,11 @@ export class PiaService {
     }
   }
 
+  /**
+   * Download the PIA exported.
+   * @param {number} id - The PIA id.
+   * @memberof PiaService
+   */
   export(id:  number) {
     const date = new Date().getTime();
     this.exportData(id).then((data) => {
@@ -268,10 +345,14 @@ export class PiaService {
         view: window
       });
       a.dispatchEvent(event);
-      a.click();
     });
   }
 
+  /**
+   * Import the PIA from file.
+   * @param {*} file - The exported PIA file.
+   * @memberof PiaService
+   */
   async import(file: any) {
     const reader = new FileReader();
     reader.readAsText(file, 'UTF-8');

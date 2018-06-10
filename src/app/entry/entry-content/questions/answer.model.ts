@@ -3,6 +3,7 @@ import { ApplicationDb } from '../../../application.db';
 export class Answer extends ApplicationDb {
   public id: number;
   public data: { text: string, gauge: number, list: string[] };
+  public answer_type: string;
 
   constructor() {
     super(201707071818, 'answer');
@@ -28,10 +29,16 @@ export class Answer extends ApplicationDb {
           resolve();
         }).catch ((error) => {
           console.error('Request failed', error);
+          reject();
         });
       } else {
         this.getObjectStore().then(() => {
-          this.objectStore.add(data).onsuccess = (event: any) => {
+          const evt = this.objectStore.add(data);
+          evt.onerror = (event: any) => {
+            console.error(event);
+            reject(Error(event));
+          }
+          evt.onsuccess = (event: any) => {
             this.id = event.target.result;
             resolve();
           };
@@ -55,10 +62,16 @@ export class Answer extends ApplicationDb {
             resolve();
           }).catch ((error) => {
             console.error('Request failed', error);
+            reject();
           });
         } else {
           this.getObjectStore().then(() => {
-            this.objectStore.put(entry).onsuccess = () => {
+            const evt = this.objectStore.put(entry);
+            evt.onerror = (event: any) => {
+              console.error(event);
+              reject(Error(event));
+            }
+            evt.onsuccess = () => {
               resolve();
             };
           });
@@ -127,15 +140,23 @@ export class Answer extends ApplicationDb {
             this.data = result.data;
             this.created_at = new Date(result.created_at);
             this.updated_at = new Date(result.updated_at);
+            resolve(true);
+          } else {
+            resolve(false);
           }
-          resolve();
         }).catch ((error) => {
           console.error('Request failed', error);
+          reject();
         });
       } else {
         this.getObjectStore().then(() => {
           const index1 = this.objectStore.index('index1');
-          index1.get(IDBKeyRange.only([this.pia_id, this.reference_to])).onsuccess = (event: any) => {
+          const evt = index1.get(IDBKeyRange.only([this.pia_id, this.reference_to]));
+          evt.onerror = (event: any) => {
+            console.error(event);
+            reject(Error(event));
+          }
+          evt.onsuccess = (event: any) => {
             const entry = event.target.result;
             if (entry) {
               this.id = entry.id;
@@ -143,8 +164,10 @@ export class Answer extends ApplicationDb {
               this.data = entry.data;
               this.created_at = new Date(entry.created_at);
               this.updated_at = new Date(entry.updated_at);
+              resolve(true);
+            } else {
+              resolve(false);
             }
-            resolve();
           }
         });
       }
@@ -162,11 +185,17 @@ export class Answer extends ApplicationDb {
           resolve(result);
         }).catch ((error) => {
           console.error('Request failed', error);
+          reject();
         });
       } else {
         this.getObjectStore().then(() => {
           const index1 = this.objectStore.index('index2');
-          index1.openCursor(IDBKeyRange.only(this.pia_id)).onsuccess = (event: any) => {
+          const evt = index1.openCursor(IDBKeyRange.only(this.pia_id));
+          evt.onerror = (event: any) => {
+            console.error(event);
+            reject(Error(event));
+          }
+          evt.onsuccess = (event: any) => {
             const cursor = event.target.result;
             if (cursor) {
               items.push(cursor.value);
@@ -191,11 +220,17 @@ export class Answer extends ApplicationDb {
           resolve(result);
         }).catch ((error) => {
           console.error('Request failed', error);
+          reject();
         });
       } else {
         this.getObjectStore().then(() => {
           const index2 = this.objectStore.index('index2');
-          index2.openCursor(IDBKeyRange.only(this.pia_id)).onsuccess = (event: any) => {
+          const evt = index2.openCursor(IDBKeyRange.only(this.pia_id));
+          evt.onerror = (event: any) => {
+            console.error(event);
+            reject(Error(event));
+          }
+          evt.onsuccess = (event: any) => {
             const cursor = event.target.result;
             if (cursor) {
               items.push(cursor.value);

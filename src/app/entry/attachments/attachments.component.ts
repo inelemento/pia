@@ -19,7 +19,7 @@ export class AttachmentsComponent implements OnInit {
   dispplayAttachmentButton = false;
 
   constructor(private activatedRoute: ActivatedRoute,
-              private _attachmentsService: AttachmentsService) { }
+              public _attachmentsService: AttachmentsService) { }
 
   ngOnInit() {
     this.attachmentForm = new FormGroup({
@@ -35,14 +35,18 @@ export class AttachmentsComponent implements OnInit {
    * @memberof AttachmentsComponent
    */
   addAttachment() {
-    this._attachmentsService.pia_signed = 0;
-    const attachment = <HTMLInputElement>document.querySelector('[formcontrolname="attachment_file"]');
-    attachment.click();
+    if (this.pia.is_example) {
+      return false;
+    } else {
+      this._attachmentsService.pia_signed = 0;
+       const attachment = <HTMLInputElement>document.querySelector('[formcontrolname="attachment_file"]');
+      attachment.click();
+    }
   }
 
   /**
    * Allows users to upload an attachment for a specific PIA.
-   * @param {event} event : any kind of event.
+   * @param {event} event - Any kind of event.
    * @memberof AttachmentsComponent
    */
   uploadAttachement(event: Event) {

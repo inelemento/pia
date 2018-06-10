@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Pia } from '../../entry/pia.model';
 import { Router } from '@angular/router';
@@ -16,23 +16,25 @@ import { PiaService } from 'app/entry/pia.service';
 export class CardItemComponent implements OnInit {
   @Input() pia: any;
   @Input() previousPia: any;
-  editMode: Boolean;
   piaForm: FormGroup;
   attachments: any;
 
+  @ViewChild('piaName') private piaName: ElementRef;
+  @ViewChild('piaAuthorName') private piaAuthorName: ElementRef;
+  @ViewChild('piaEvaluatorName') private piaEvaluatorName: ElementRef;
+  @ViewChild('piaValidatorName') private piaValidatorName: ElementRef;
+
   constructor(private router: Router,
               private _modalsService: ModalsService,
-              private _piaService: PiaService) {
-    this.editMode = false;
-  }
+              public _piaService: PiaService) { }
 
   ngOnInit() {
     this.piaForm = new FormGroup({
       id: new FormControl(this.pia.id),
-      name: new FormControl({ value: this.pia.name, disabled: true }),
-      author_name: new FormControl({ value: this.pia.author_name, disabled: true }),
-      evaluator_name: new FormControl({ value: this.pia.evaluator_name, disabled: true }),
-      validator_name: new FormControl({ value: this.pia.validator_name, disabled: true })
+      name: new FormControl({ value: this.pia.name, disabled: false }),
+      author_name: new FormControl({ value: this.pia.author_name, disabled: false }),
+      evaluator_name: new FormControl({ value: this.pia.evaluator_name, disabled: false }),
+      validator_name: new FormControl({ value: this.pia.validator_name, disabled: false })
     });
 
     const attachmentModel = new Attachment();
@@ -44,38 +46,113 @@ export class CardItemComponent implements OnInit {
   }
 
   /**
-   * Enables or disables edition mode on PIA main fields.
+   * Focuses pia name field.
    * @memberof CardItemComponent
    */
-  activateEdition() {
-    this.editMode = !this.editMode;
-    if (this.editMode) {
-      this.piaForm.enable();
-    } else {
-      this.piaForm.disable();
+  piaNameFocusIn() {
+    this.piaForm.controls['name'].enable();
+    this.piaName.nativeElement.focus();
+  }
+
+  /**
+   * Disables pia name field and saves data.
+   * @memberof CardItemComponent
+   */
+  piaNameFocusOut() {
+    let userText = this.piaForm.controls['name'].value;
+    if (userText) {
+      userText = userText.replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    if (userText !== '') {
+      const pia = new Pia();
+      pia.get(this.piaForm.value.id).then(() => {
+        pia.name = this.piaForm.value.name;
+        pia.update();
+      });
     }
   }
 
   /**
-   * Update PIA informations
-   * @returns {Promise}
+   * Focuses pia author name field.
    * @memberof CardItemComponent
    */
-  onSubmit() {
-    const pia = new Pia();
-    pia.get(this.piaForm.value.id).then(() => {
-      pia.name = this.piaForm.value.name;
-      pia.author_name = this.piaForm.value.author_name;
-      pia.evaluator_name = this.piaForm.value.evaluator_name;
-      pia.validator_name = this.piaForm.value.validator_name;
-      pia.update();
-      this.activateEdition();
-    });
+  piaAuthorNameFocusIn() {
+    this.piaAuthorName.nativeElement.focus();
+  }
+
+  /**
+   * Disables pia author name field and saves data.
+   * @memberof CardItemComponent
+   */
+  piaAuthorNameFocusOut() {
+    let userText = this.piaForm.controls['author_name'].value;
+    if (userText) {
+      userText = userText.replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    if (userText !== '') {
+      const pia = new Pia();
+      pia.get(this.piaForm.value.id).then(() => {
+        pia.author_name = this.piaForm.value.author_name;
+        pia.update();
+      });
+    }
+  }
+
+  /**
+   * Focuses pia evaluator name field.
+   * @memberof CardItemComponent
+   */
+  piaEvaluatorNameFocusIn() {
+    this.piaEvaluatorName.nativeElement.focus();
+  }
+
+  /**
+   * Disables pia evaluator name field and saves data.
+   * @memberof CardItemComponent
+   */
+  piaEvaluatorNameFocusOut() {
+    let userText = this.piaForm.controls['evaluator_name'].value;
+    if (userText) {
+      userText = userText.replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    if (userText !== '') {
+      const pia = new Pia();
+      pia.get(this.piaForm.value.id).then(() => {
+        pia.evaluator_name = this.piaForm.value.evaluator_name;
+        pia.update();
+      });
+    }
+  }
+
+  /**
+   * Focuses pia validator name field.
+   * @memberof CardItemComponent
+   */
+  piaValidatorNameFocusIn() {
+    this.piaValidatorName.nativeElement.focus();
+  }
+
+  /**
+   * Disables pia validator name field and saves data.
+   * @memberof CardItemComponent
+   */
+  piaValidatorNameFocusOut() {
+    let userText = this.piaForm.value.validator_name;
+    if (userText) {
+      userText = userText.replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    if (userText !== '') {
+      const pia = new Pia();
+      pia.get(this.piaForm.value.id).then(() => {
+        pia.validator_name = this.piaForm.value.validator_name;
+        pia.update();
+      });
+    }
   }
 
   /**
    * Deletes a PIA with a given id.
-   * @param {string} id unique id of the PIA to be deleted.
+   * @param {string} id - The PIA id.
    * @memberof CardItemComponent
    */
   removePia(id: string) {
@@ -84,8 +161,8 @@ export class CardItemComponent implements OnInit {
   }
 
   /**
-   * Export a PIA in JSON format
-   * @param {number} id
+   * Export a PIA in JSON format.
+   * @param {number} id - The PIA id.
    * @memberof CardItemComponent
    */
   export(id: number) {

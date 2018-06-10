@@ -9,11 +9,11 @@ import { AppDataService } from 'app/services/app-data.service';
 import { MeasureService } from 'app/entry/entry-content/measures/measures.service';
 import { ModalsService } from 'app/modals/modals.service';
 import { PiaService } from 'app/entry/pia.service';
-import { EvaluationService } from 'app/entry/entry-content/evaluations/evaluations.service';
-import { PaginationService } from './pagination.service';
+import { PaginationService } from 'app/entry/entry-content/pagination.service';
 import { TranslateService } from '@ngx-translate/core';
 import { SidStatusService } from 'app/services/sid-status.service';
 import { GlobalEvaluationService } from 'app/services/global-evaluation.service';
+import { KnowledgeBaseService } from 'app/entry/knowledge-base/knowledge-base.service';
 
 @Component({
   selector: 'app-entry-content',
@@ -23,25 +23,28 @@ import { GlobalEvaluationService } from 'app/services/global-evaluation.service'
 })
 
 export class EntryContentComponent implements OnInit, OnChanges {
-  @Input() section: { id: number, title: string, short_help: string, items: any };
-  @Input() item: { id: number, title: string, evaluation_mode: string, short_help: string, questions: any };
+  @Input() section: any;
+  @Input() item: any;
   @Input() questions: any;
   @Input() data: any;
 
   constructor(private _router: Router,
               private _appDataService: AppDataService,
               private _activatedRoute: ActivatedRoute,
-              private _measureService: MeasureService,
+              public _measureService: MeasureService,
               private _modalsService: ModalsService,
-              private _piaService: PiaService,
-              private _sidStatusService: SidStatusService,
-              private _globalEvaluationService: GlobalEvaluationService,
-              private _evaluationService: EvaluationService,
-              private _paginationService: PaginationService,
-              private _translateService: TranslateService) {
-  }
+              public _piaService: PiaService,
+              public _sidStatusService: SidStatusService,
+              public _globalEvaluationService: GlobalEvaluationService,
+              public _paginationService: PaginationService,
+              private _translateService: TranslateService,
+              private _knowledgeBaseService: KnowledgeBaseService) { }
 
   ngOnInit() {
+    // Reset measures no longer addable from KB when switching PIA
+    this._knowledgeBaseService.toHide = [];
+
+    // Update the last edited date for this PIA
     this._piaService.getPIA().then(() => {
       this._piaService.pia.updated_at = new Date();
       this._piaService.pia.update();
@@ -52,41 +55,109 @@ export class EntryContentComponent implements OnInit, OnChanges {
     this._paginationService.dataNav = await this._appDataService.getDataNav();
     await this._piaService.getPIA();
 
-    this._evaluationService.setPia(this._piaService.pia);
-    this._evaluationService.allowEvaluation();
-    this._paginationService.setPagination(parseInt(this._activatedRoute.snapshot.params['section_id'], 10),
-                                          parseInt(this._activatedRoute.snapshot.params['item_id'], 10));
+    const sectionId = parseInt(this._activatedRoute.snapshot.params['section_id'], 10);
+    const itemId = parseInt(this._activatedRoute.snapshot.params['item_id'], 10);
+
+    this._paginationService.setPagination(sectionId, itemId);
+
+    // Redirect users accessing validation page if requirements not met
+    /* TODO make it works for refusal PIA status + */
+    // if (sectionId === 4 && itemId === 4) {
+    //   if ((!this._globalEvaluationService.enablePiaValidation && !this._globalEvaluationService.piaIsRefused)
+    //   || (this._globalEvaluationService.piaIsRefused && !this._piaService.pia.applied_adjustements)) {
+    //     this._router.navigate(['entry', this._piaService.pia.id, 'section', 1, 'item', 1])
+    //   }
+    // }
+
+    // // Redirect users accessing refusal page if requirements not met
+    // if (sectionId === 4 && itemId === 5) {
+    //   if (!this._globalEvaluationService.enablePiaValidation && !this._globalEvaluationService.piaIsRefused) {
+    //     this._router.navigate(['entry', this._piaService.pia.id, 'section', 1, 'item', 1])
+    //   }
+    // }
   }
 
   /**
-   * Prepare entry for evaluation
+   * Prepare entry for evaluation.
    * @memberof EntryContentComponent
    */
   prepareForEvaluation() {
-    this._evaluationService.prepareForEvaluation(this._piaService, this._sidStatusService, this.section, this.item);
+    this._globalEvaluationService.prepareForEvaluation().then(() => {
+      let isPiaFullyEdited = true;
+      for (const el in this._sidStatusService.itemStatus) {
+        if (this._sidStatusService.itemStatus.hasOwnProperty(el) && this._sidStatusService.itemStatus[el] < 4 && el !== '4.3') {
+          isPiaFullyEdited = false;
+        }
+      }
+      if (isPiaFullyEdited) {
+        this.goToNextSectionItem(4, 5);
+        this._modalsService.openModal('completed-edition');
+      } else {
+        this.goToNextSectionItem(0, 4);
+        this._modalsService.openModal('ask-for-evaluation');
+      }
+    });
   }
 
   /**
-   * Allows an user to validate evaluation for a section.
+   * Allow an user to validate evaluation for a section.
    * @memberof EntryContentComponent
    */
   validateEvaluation() {
-    this._evaluationService.validateAllEvaluation().then((valid: boolean) => {
-      this._sidStatusService.setSidStatus(this._piaService, this.section, this.item);
-      this._router.navigate([
-        'entry',
-        this._piaService.pia.id,
-        'section',
-        this._paginationService.nextLink[0],
-        'item',
-        this._paginationService.nextLink[1]
-      ]);
-      if (valid) {
-        this._modalsService.openModal('validate-evaluation');
-      } else {
+    this._globalEvaluationService.validateAllEvaluation().then((toFix: boolean) => {
+      this.goToNextSectionItem(5, 7);
+      let isPiaFullyEvaluated = true;
+      for (const el in this._sidStatusService.itemStatus) {
+        if (this._sidStatusService.itemStatus.hasOwnProperty(el) && this._sidStatusService.itemStatus[el] !== 7 && el !== '4.3') {
+          isPiaFullyEvaluated = false;
+        }
+      }
+      if (isPiaFullyEvaluated) {
+        this._modalsService.openModal('completed-evaluation');
+      } else if (toFix) {
         this._modalsService.openModal('validate-evaluation-to-correct');
+      } else {
+        this._modalsService.openModal('validate-evaluation');
       }
     });
+  }
+
+  /**
+   * Go to next item.
+   * @private
+   * @param {number} status_start - From status.
+   * @param {number} status_end - To status.
+   * @memberof EntryContentComponent
+   */
+  private goToNextSectionItem(status_start: number, status_end: number) {
+    const goto_section_item = this._paginationService.getNextSectionItem(status_start, status_end)
+
+    this._router.navigate([
+      'entry',
+      this._piaService.pia.id,
+      'section',
+      goto_section_item[0],
+      'item',
+      goto_section_item[1]
+    ]);
+  }
+
+  /**
+   * Allow an user to return in edit mode.
+   * @memberof EntryContentComponent
+   */
+  cancelAskForEvaluation() {
+    this._globalEvaluationService.cancelForEvaluation();
+    this._modalsService.openModal('back-to-edition');
+  }
+
+  /**
+   * Allow an user to cancel the validation.
+   * @memberof EntryContentComponent
+   */
+  cancelValidateEvaluation() {
+    this._globalEvaluationService.cancelValidation();
+    this._modalsService.openModal('back-to-evaluation');
   }
 
 }

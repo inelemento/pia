@@ -1,15 +1,16 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Http } from '@angular/http';
 import { Subscription } from 'rxjs/Subscription';
 
 import { Answer } from 'app/entry/entry-content/questions/answer.model';
 import { Evaluation } from 'app/entry/entry-content/evaluations/evaluation.model';
-import { AppDataService } from 'app/services/app-data.service';
 
+import { PiaService } from 'app/entry/pia.service';
+import { AppDataService } from 'app/services/app-data.service';
 import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-risks-cartography',
+  selector: `.app-risks-cartography`,
   templateUrl: './risks-cartography.component.html',
   styleUrls: ['./risks-cartography.component.scss']
 })
@@ -18,14 +19,14 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
   questions: any[] = [];
   answer: Answer = new Answer();
   answersGauge: any[] = [];
-  @Input() pia: any;
   dataJSON: any;
   risk1Letter;
   risk2Letter;
 
   constructor(private http: Http,
               private _appDataService: AppDataService,
-              private _translateService: TranslateService) { }
+              private _translateService: TranslateService,
+              public _piaService: PiaService) { }
 
   async ngOnInit() {
     this.risk1Letter = this._translateService.instant('cartography.risk1_access');
@@ -79,7 +80,7 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
         }
       });
     });
-    this.answer.getGaugeByPia(this.pia.id).then((entries: any) => {
+    this.answer.getGaugeByPia(this._piaService.pia.id).then((entries: any) => {
       this.answersGauge = entries.filter((entry) => {
         return entry.data.gauge >= 0;
       });
@@ -103,19 +104,19 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
         }
       });
       const evaluation = new Evaluation();
-      evaluation.getByReference(this.pia.id, '3.2').then(() => {
+      evaluation.getByReference(this._piaService.pia.id, '3.2').then(() => {
         if (evaluation.gauges) {
           this.dataJSON['risk-access']['evaluator']['y'] = positions['y'][evaluation.gauges['x']];
           this.dataJSON['risk-access']['evaluator']['x'] = positions['x'][evaluation.gauges['y']];
         }
         const evaluation2 = new Evaluation();
-        evaluation2.getByReference(this.pia.id, '3.3').then(() => {
+        evaluation2.getByReference(this._piaService.pia.id, '3.3').then(() => {
           if (evaluation2.gauges) {
             this.dataJSON['risk-change']['evaluator']['y'] = positions['y'][evaluation2.gauges['x']];
             this.dataJSON['risk-change']['evaluator']['x'] = positions['x'][evaluation2.gauges['y']];
           }
           const evaluation3 = new Evaluation();
-          evaluation3.getByReference(this.pia.id, '3.4').then(() => {
+          evaluation3.getByReference(this._piaService.pia.id, '3.4').then(() => {
             if (evaluation3.gauges) {
               this.dataJSON['risk-disappearance']['evaluator']['y'] = positions['y'][evaluation3.gauges['x']];
               this.dataJSON['risk-disappearance']['evaluator']['x'] = positions['x'][evaluation3.gauges['y']];
@@ -161,7 +162,11 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
       if (this.dataJSON['risk-access']['author'].x && this.dataJSON['risk-access']['author'].y) {
         // Author dots (red)
         context.beginPath();
-        context.fillStyle = '#FD4664';
+        if (localStorage.getItem('increaseContrast') === 'true') {
+          context.fillStyle = '#C40288';
+        } else {
+          context.fillStyle = '#FD4664';
+        }
         context.arc(this.dataJSON['risk-access']['author'].x + 8,
                     this.dataJSON['risk-access']['author'].y, 7, 0, Math.PI * 2, true);
         context.fill();
@@ -177,7 +182,11 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
 
       if (this.dataJSON['risk-change']['author'].x && this.dataJSON['risk-change']['author'].y) {
         context.beginPath();
-        context.fillStyle = '#FD4664';
+        if (localStorage.getItem('increaseContrast') === 'true') {
+          context.fillStyle = '#C40288';
+        } else {
+          context.fillStyle = '#FD4664';
+        }
         context.arc(this.dataJSON['risk-change']['author'].x,
                     this.dataJSON['risk-change']['author'].y, 7, 0, Math.PI * 2, true);
         context.fill();
@@ -193,7 +202,11 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
 
       if (this.dataJSON['risk-disappearance']['author'].x && this.dataJSON['risk-disappearance']['author'].y) {
         context.beginPath();
-        context.fillStyle = '#FD4664';
+        if (localStorage.getItem('increaseContrast') === 'true') {
+          context.fillStyle = '#C40288';
+        } else {
+          context.fillStyle = '#FD4664';
+        }
         context.arc(this.dataJSON['risk-disappearance']['author'].x - 8,
                     this.dataJSON['risk-disappearance']['author'].y, 7, 0, Math.PI * 2, true);
         context.fill();
@@ -371,12 +384,12 @@ export class RisksCartographyComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Draw an arrow between two point
-   * @param {CanvasRenderingContext2D} context
-   * @param {number} fromx
-   * @param {number} fromy
-   * @param {number} tox
-   * @param {number} toy
+   * Draw an arrow between two point.
+   * @param {CanvasRenderingContext2D} context - The context.
+   * @param {number} fromx - From the position X.
+   * @param {number} fromy - From the position Y.
+   * @param {number} tox - To the position X.
+   * @param {number} toy - To the position Y.
    * @memberof RisksCartographyComponent
    */
   canvasArrow(context: CanvasRenderingContext2D, fromx: number, fromy: number, tox: number, toy: number) {

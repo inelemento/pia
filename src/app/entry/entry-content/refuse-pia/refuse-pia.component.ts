@@ -6,6 +6,8 @@ import { Evaluation } from 'app/entry/entry-content/evaluations/evaluation.model
 
 import { ModalsService } from 'app/modals/modals.service';
 import { PiaService } from 'app/entry/pia.service';
+import { SidStatusService } from 'app/services/sid-status.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-refuse-pia',
@@ -23,7 +25,9 @@ export class RefusePIAComponent implements OnInit {
   constructor(private router: Router,
               private el: ElementRef,
               private _modalsService: ModalsService,
-              private _piaService: PiaService) { }
+              private _sidStatusService: SidStatusService,
+              private _translateService: TranslateService,
+              public _piaService: PiaService) { }
 
   ngOnInit() {
     this.rejectionReasonForm = new FormGroup({
@@ -63,7 +67,7 @@ export class RefusePIAComponent implements OnInit {
   }
 
   /**
-   * Display the modal to abandon
+   * Display the modal to abandon.
    * @memberof RefusePIAComponent
    */
   abandon() {
@@ -71,21 +75,24 @@ export class RefusePIAComponent implements OnInit {
   }
 
   /**
-   * Refuse the PIA and navigate to the root page of the PIA
+   * Refuse the PIA and navigate to the root page of the PIA.
    * @memberof RefusePIAComponent
    */
   refuse() {
     this._piaService.pia.status = 1;
     this._piaService.pia.update().then(() => {
       this._piaService.cancelAllValidatedEvaluation().then(() => {
-        this.router.navigate(['entry', this._piaService.pia.id, 'section', 1, 'item', 1]);
-        this._modalsService.openModal('modal-refuse-pia');
+        this._sidStatusService.refusePia(this._piaService).then(() => {
+          this.router.navigate(['entry', this._piaService.pia.id, 'section', 1, 'item', 1]);
+          this._modalsService.openModal('modal-refuse-pia');
+        });
       });
     });
   }
 
   /**
    * Focuses rejection reason field.
+   * @memberof RefusePIAComponent
    */
   rejectionReasonFocusIn() {
     if (this._piaService.pia.status === 1) {
@@ -118,6 +125,7 @@ export class RefusePIAComponent implements OnInit {
 
   /**
    * Focuses modification made field.
+   * @memberof RefusePIAComponent
    */
   modificationsMadeFocusIn() {
     if (this._piaService.pia.status !== 1) {
@@ -158,11 +166,11 @@ export class RefusePIAComponent implements OnInit {
 
   /**
    * Enable auto resizing on tetarea
-   * @param {*} event
-   * @param {HTMLElement} textarea
+   * @param {*} event - Any Event.
+   * @param {HTMLElement} textarea - Texarea element.
    * @memberof RefusePIAComponent
    */
-  autoTextareaResize(event: any, textarea: HTMLElement) {
+  autoTextareaResize(event: any, textarea?: HTMLElement) {
     if (event) {
       textarea = event.target;
     }

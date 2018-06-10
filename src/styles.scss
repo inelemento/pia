@@ -23,7 +23,6 @@ $fa-font-path: "../node_modules/font-awesome/fonts";
 @import "./assets/stylesheets/action-plan";
 @import "./assets/stylesheets/contrast";
 @import "./assets/stylesheets/editor";
-@import "./assets/stylesheets/overview-risks";
 @import "./assets/stylesheets/print";
 @import "./assets/stylesheets/header";
 
@@ -87,6 +86,10 @@ input {
   color: $pia-red;
 }
 
+.green-highlight {
+  color: $pia-green;
+}
+
 // Mostly used for displayers
 .close, .hide {
   display: none !important;
@@ -97,10 +100,10 @@ input {
 
 // Main blur (used on modals)
 .blur {
-  filter: blur(1.5px);
+  filter: blur(3px);
 }
 
-// Special blur (used on a "RISKS" modal)
+// Special blur (used for special modals (risks/action plan/dpo)
 .blur-content {
   &:after {
     cursor: not-allowed;
@@ -194,4 +197,51 @@ tag-input-form {
 
 @-moz-keyframes cssload-spin {
 	100%{ -moz-transform: rotate(360deg); transform: rotate(360deg); }
+}
+
+.pia-helpBlock-content {
+  line-height: 1.7rem;
+  td {
+    font-weight: 400;
+    text-align: left;
+    &:last-of-type {
+      padding: 15px;
+      vertical-align: top;
+    }
+  }
+  h2 {
+    background-color: $pia-blue;
+    font-size: 2.4rem!important;
+    line-height: 2.4rem;
+    padding: 8px 20px;
+    margin: 0;
+    max-width: 610px;
+    color: #fff;
+    display: block;
+    font-weight: 400;
+  }
+  table + h2 {
+    margin-top: 50px;
+  }
+  h3 {
+    padding: 17px 12px 5px 12px;
+    font-size: 1.7rem;
+    line-height: 1.7rem;
+    font-weight: 600;
+    color: $pia-gray-dark;
+    margin: 0 12px;
+  }
+  p {
+    max-width: 610px;
+  }
+  tr td {
+    padding: 15px;
+    border: none !important;
+    &:first-child {
+      box-shadow: 1px 1px 15px 1px #d2d2d2;
+    }
+  }
+  img {
+    max-width: 650px!important;
+  }
 }

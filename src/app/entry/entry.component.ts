@@ -5,13 +5,14 @@ import { Subscription } from 'rxjs/Subscription';
 
 import { Answer } from 'app/entry/entry-content/questions/answer.model';
 
-import { EvaluationService } from 'app/entry/entry-content/evaluations/evaluations.service';
 import { KnowledgeBaseService } from 'app/entry/knowledge-base/knowledge-base.service';
 import { MeasureService } from 'app/entry/entry-content/measures/measures.service';
 import { ActionPlanService } from 'app/entry/entry-content/action-plan//action-plan.service';
 import { PiaService } from 'app/entry/pia.service';
 import { ModalsService } from 'app/modals/modals.service';
 import { AppDataService } from 'app/services/app-data.service';
+import { SidStatusService } from 'app/services/sid-status.service';
+import { GlobalEvaluationService } from '../services/global-evaluation.service';
 
 @Component({
   selector: 'app-entry',
@@ -31,10 +32,11 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
               private http: Http,
               private _modalsService: ModalsService,
               private _appDataService: AppDataService,
-              private _evaluationService: EvaluationService,
+              private _sidStatusService: SidStatusService,
               private _knowledgeBaseService: KnowledgeBaseService,
               private _piaService: PiaService,
               private _actionPlanService: ActionPlanService,
+              private _globalEvaluationService: GlobalEvaluationService,
               private _measureService: MeasureService) { }
 
   async ngOnInit() {
@@ -42,7 +44,6 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
     let itemId = parseInt(this.route.snapshot.params['item_id'], 10);
 
     this.data = await this._appDataService.getDataNav();
-    this.getSectionAndItem(sectionId, itemId);
     this.route.params.subscribe(
       (params: Params) => {
         sectionId = parseInt(params['section_id'], 10);
@@ -94,11 +95,15 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
     }
   }
 
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
   /**
-   * Get the current Section and Item and initialize others information
+   * Get the current Section and Item and initialize others information.
    * @private
-   * @param {number} sectionId
-   * @param {number} itemId
+   * @param {number} sectionId - The section id.
+   * @param {number} itemId - The item id.
    * @memberof EntryComponent
    */
   private getSectionAndItem(sectionId: number, itemId: number) {
@@ -109,9 +114,8 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
       return item.id === itemId;
     })[0];
 
-    // Set elements for evaluation verification on each page.
-    this._evaluationService.section = this.section;
-    this._evaluationService.item = this.item;
+    this._globalEvaluationService.section = this.section;
+    this._globalEvaluationService.item = this.item;
 
     this.questions = [];
     if (this.item['questions']) {
@@ -121,7 +125,11 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     this._piaService.getPIA().then(() => {
+      this._globalEvaluationService.pia = this._piaService.pia;
+      this._globalEvaluationService.validate();
       this._measureService.listMeasures(this._piaService.pia.id).then(() => {
+
+        /* Modal for risks if no measures yet */
         let displayModal = true;
         if ((this.section.id === 3) && (this.item.id === 2 || this.item.id === 3 || this.item.id === 4)) {
           if (this._measureService.measures.length > 0) {
@@ -135,6 +143,17 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
             this._modalsService.openModal('pia-declare-measures');
           }
         }
+
+        /* Modal for action plan if no evaluations yet */
+        if (this.section.id === 4 && this.item.id === 2 && !this._sidStatusService.verifEnableActionPlan()) {
+          this._modalsService.openModal('pia-action-plan-no-evaluation');
+        }
+
+        /* Modal for dpo page if all evaluations are not done yet */
+        if (this.section.id === 4 && this.item.id === 3 && !this._sidStatusService.enableDpoValidation) {
+          this._modalsService.openModal('pia-dpo-missing-evaluations');
+        }
+
       });
 
       this._actionPlanService.data = this.data;
@@ -150,9 +169,5 @@ export class EntryComponent implements OnInit, OnDestroy, DoCheck {
     this._knowledgeBaseService.q = null;
     this._knowledgeBaseService.loadByItem(this.item);
     this._knowledgeBaseService.placeholder = null;
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
   }
 }

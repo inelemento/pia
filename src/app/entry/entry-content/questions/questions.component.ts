@@ -6,9 +6,9 @@ import 'rxjs/add/operator/filter';
 import { KnowledgeBaseService } from '../../knowledge-base/knowledge-base.service';
 import { Answer } from './answer.model';
 import { Measure } from '../measures/measure.model';
-import { EvaluationService } from 'app/entry/entry-content/evaluations/evaluations.service';
 import { ModalsService } from 'app/modals/modals.service';
 import { Evaluation } from 'app/entry/entry-content/evaluations/evaluation.model';
+import {GlobalEvaluationService} from '../../../services/global-evaluation.service';
 
 @Component({
   selector: 'app-questions',
@@ -32,12 +32,13 @@ export class QuestionsComponent implements OnInit, OnDestroy {
 
   constructor(private el: ElementRef,
               private _knowledgeBaseService: KnowledgeBaseService,
-              private _evaluationService: EvaluationService,
               private _modalsService: ModalsService,
               private _ngZone: NgZone,
+              public _globalEvaluationService: GlobalEvaluationService,
               private renderer: Renderer2) { }
 
   ngOnInit() {
+    this._globalEvaluationService.answerEditionEnabled = true;
     this.elementId = 'pia-question-content-' + this.question.id;
     this.questionForm = new FormGroup({
       gauge: new FormControl(0),
@@ -79,18 +80,36 @@ export class QuestionsComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngOnDestroy() {
+    tinymce.remove(this.editor);
+  }
+
+  /**
+   * On evaluation change.
+   * @param {any} evaluation - Any Evaluation.
+   * @memberof QuestionsComponent
+   */
   evaluationChange(evaluation) {
     this.evaluation = evaluation;
   }
 
+  /**
+   * Enable the gauge.
+   * @memberof QuestionsComponent
+   */
   enableGauge() {
-    if (this._evaluationService.showValidationButton || this._evaluationService.enableFinalValidation) {
-      this.questionForm.controls['gauge'].disable();
-    } else {
+    if (this._globalEvaluationService.answerEditionEnabled) {
       this.questionForm.controls['gauge'].enable();
+    } else {
+      this.questionForm.controls['gauge'].disable();
     }
   }
 
+  /**
+   * Check gauge change.
+   * @param {*} event - Any Event.
+   * @memberof QuestionsComponent
+   */
   checkGaugeChanges(event: any) {
     const value: string = event.target.value;
     const bgElement = event.target.parentNode.querySelector('.pia-gaugeBlock-background');
@@ -103,33 +122,35 @@ export class QuestionsComponent implements OnInit, OnDestroy {
     if (this.answer.id) {
       this.answer.data = { text: this.answer.data.text, gauge: gaugeValue, list: this.answer.data.list };
       this.answer.update().then(() => {
-        this._evaluationService.allowEvaluation();
+        this._ngZone.run(() => {
+          this._globalEvaluationService.validate();
+        });
       });
     } else {
       this.answer.pia_id = this.pia.id;
       this.answer.reference_to = this.question.id;
       this.answer.data = { text: null, gauge: gaugeValue, list: [] };
       this.answer.create().then(() => {
-        this._evaluationService.allowEvaluation();
+        this._ngZone.run(() => {
+          this._globalEvaluationService.validate();
+        });
       });
     }
   }
 
   /**
    * Loads WYSIWYG editor.
+   * @memberof QuestionsComponent
    */
   questionContentFocusIn() {
-    setTimeout(() => {
-      if (this._evaluationService.showValidationButton || this._evaluationService.enableFinalValidation) {
-        return false;
-      } else {
-        this.loadEditor();
-      }
-    }, 1);
+    if (this._globalEvaluationService.answerEditionEnabled) {
+      this.loadEditor();
+    }
   }
 
   /**
    * Disables question field + shows edit button + save data.
+   * @memberof QuestionsComponent
    */
   questionContentFocusOut() {
     let userText = this.questionForm.controls['text'].value;
@@ -140,17 +161,18 @@ export class QuestionsComponent implements OnInit, OnDestroy {
       this.answer.data = { text: userText, gauge: this.answer.data.gauge, list: this.answer.data.list };
       this.answer.update().then(() => {
         this._ngZone.run(() => {
-          this._evaluationService.allowEvaluation();
+          this._globalEvaluationService.validate();
         });
       });
     } else if (!this.answer.id && userText !== '') {
       if (this.questionForm.value.text && this.questionForm.value.text.length > 0) {
         this.answer.pia_id = this.pia.id;
         this.answer.reference_to = this.question.id;
-        this.answer.data = { text: this.questionForm.value.text, gauge: 0, list: [] };
+        const gaugeValueForCurrentQuestion = this.question.answer_type === 'gauge' ? 0 : null;
+        this.answer.data = { text: this.questionForm.value.text, gauge: gaugeValueForCurrentQuestion, list: [] };
         this.answer.create().then(() => {
           this._ngZone.run(() => {
-            this._evaluationService.allowEvaluation();
+            this._globalEvaluationService.validate();
           });
         });
       }
@@ -159,7 +181,8 @@ export class QuestionsComponent implements OnInit, OnDestroy {
 
   /**
    * Adds the measure tag in the database.
-   * @param {event} event any event.
+   * @param {any} event - Any Event.
+   * @memberof QuestionsComponent
    */
   onAdd(event) {
     if (event && event.value.length > 0) {
@@ -176,7 +199,8 @@ export class QuestionsComponent implements OnInit, OnDestroy {
 
   /**
    * Updates the last selected tag.
-   * @param {event} event any event.
+   * @param {any} event - Any Event.
+   * @memberof QuestionsComponent
    */
   onSelected(event) {
     // When it returns an object (weird scenario)
@@ -189,7 +213,8 @@ export class QuestionsComponent implements OnInit, OnDestroy {
 
   /**
    * Removes the measure tag from the database.
-   * @param {event} event any event.
+   * @param {any} event - Any Event.
+   * @memberof QuestionsComponent
    */
   onRemove(event) {
     let list = [];
@@ -209,6 +234,11 @@ export class QuestionsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * On tag edited.
+   * @param {any} event - Any Event.
+   * @memberof QuestionsComponent
+   */
   onTagEdited(event) {
     let list = [];
     if (this.answer.id) {
@@ -226,6 +256,11 @@ export class QuestionsComponent implements OnInit, OnDestroy {
     this.createOrUpdateList(list);
   }
 
+  /**
+   * On tag leave.
+   * @param {any} event - Any Event.
+   * @memberof QuestionsComponent
+   */
   onBlur(event) {
     if (event && event.length > 0) {
       let list = [];
@@ -241,29 +276,33 @@ export class QuestionsComponent implements OnInit, OnDestroy {
 
   /**
    * Creates or updates the tags list.
-   * @param {string[]} list list of tags.
+   * @private
+   * @param {string[]} list - List of tags.
+   * @memberof QuestionsComponent
    */
   private createOrUpdateList(list: string[]) {
     if (this.answer.id) {
       this.answer.data = { text: this.answer.data.text, gauge: this.answer.data.gauge, list: list };
       this.answer.update().then(() => {
-        this._evaluationService.allowEvaluation();
+        this._globalEvaluationService.validate();
       });
     } else {
       this.answer.pia_id = this.pia.id;
       this.answer.reference_to = this.question.id;
       this.answer.data = { text: null, gauge: null, list: list };
       this.answer.create().then(() => {
-        this._evaluationService.allowEvaluation();
+        this._globalEvaluationService.validate();
       });
     }
   }
 
   /**
    * Shows or hides a question.
+   * @param {*} event - Any Event.
+   * @memberof QuestionsComponent
    */
   displayQuestion(event: any) {
-    const accordeon = this.el.nativeElement.querySelector('.pia-questionBlock-title button');
+    const accordeon = this.el.nativeElement.querySelector('.pia-accordeon');
     accordeon.classList.toggle('pia-icon-accordeon-down');
     const displayer = this.el.nativeElement.querySelector('.pia-questionBlock-displayer');
     displayer.classList.toggle('close');
@@ -287,7 +326,8 @@ export class QuestionsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Loads Tiny MCE editor.
+   * Loads wysiwyg editor.
+   * @memberof QuestionsComponent
    */
   loadEditor() {
     this._knowledgeBaseService.placeholder = this.question.placeholder;
@@ -317,12 +357,10 @@ export class QuestionsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Destroys editor.
+   * Close the editor.
+   * @private
+   * @memberof QuestionsComponent
    */
-  ngOnDestroy() {
-    tinymce.remove(this.editor);
-  }
-
   private closeEditor() {
     this._knowledgeBaseService.placeholder = null;
     tinymce.remove(this.editor);

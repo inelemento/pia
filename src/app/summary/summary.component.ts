@@ -1,58 +1,207 @@
-import { Component, OnInit } from '@angular/core';
-import { PiaService } from 'app/entry/pia.service';
-import { AttachmentsService } from 'app/entry/attachments/attachments.service';
+import { Component, ElementRef, OnInit } from '@angular/core';
+import { Router, ActivatedRoute, Params } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
+import {element} from 'protractor';
+import * as html2canvas from 'html2canvas';
+import { saveSvgAsPng } from 'save-svg-as-png';
+import { Angular2Csv } from 'angular2-csv';
+
 import { Answer } from 'app/entry/entry-content/questions/answer.model';
 import { Measure } from 'app/entry/entry-content/measures/measure.model';
 import { Evaluation } from 'app/entry/entry-content/evaluations/evaluation.model';
-import { ActionPlanService } from 'app/entry/entry-content/action-plan//action-plan.service';
-import { ActivatedRoute, Params } from '@angular/router';
-import { AppDataService } from 'app/services/app-data.service';
 
+import { ActionPlanService } from 'app/entry/entry-content/action-plan//action-plan.service';
+import { AppDataService } from 'app/services/app-data.service';
 import { TranslateService } from '@ngx-translate/core';
+import { ModalsService } from '../modals/modals.service';
+import { PiaService } from 'app/entry/pia.service';
+import { AttachmentsService } from 'app/entry/attachments/attachments.service';
 
 @Component({
   selector: 'app-summary',
   templateUrl: './summary.component.html',
-  styleUrls: ['./summary.component.scss'],
+  styleUrls: [
+    './summary.component.scss',
+    '../entry/entry-content/action-plan/action-plan.component.scss'
+  ],
   providers: [PiaService]
 })
 export class SummaryComponent implements OnInit {
 
   content: any[];
   pia: any;
-  allData: any[];
+  allData: Object;
   dataNav: any;
-  showPiaTpl: boolean;
+  displayMainPiaData: boolean;
+  displayActionPlan: boolean;
+  summarySubscription: Subscription;
+  displayOnlyActionPlan: boolean;
+  displayRisksOverview: boolean;
+  displayRisksCartography: boolean;
 
-  constructor(private route: ActivatedRoute,
+  constructor(private el: ElementRef,
+              private route: ActivatedRoute,
               private _attachmentsService: AttachmentsService,
-              private _actionPlanService: ActionPlanService,
+              public _actionPlanService: ActionPlanService,
               private _translateService: TranslateService,
               private _appDataService: AppDataService,
-              private _piaService: PiaService) { }
+              public _piaService: PiaService,
+              private _modalService: ModalsService) { }
 
   async ngOnInit() {
+    this.summarySubscription = this.route.queryParams.subscribe(params => {
+      this.displayOnlyActionPlan = params['displayOnlyActionPlan'];
+    });
+
     this.content = [];
     this.dataNav = await this._appDataService.getDataNav();
+
     this._piaService.getPIA().then(() => {
       this.pia = this._piaService.pia;
-      if (this.route.snapshot.params['type'] === 'pia') {
-        this.showPiaTpl = true;
-        this.showPia();
-      } else if (this.route.snapshot.params['type'] === 'action_plan') {
-        this.showPiaTpl = false;
-        this.showActionPlan();
-      }
+      this.displayMainPiaData = true;
+      this.displayActionPlan = true;
+      this.displayRisksOverview = true;
+      this.displayRisksCartography = true;
+      this.showPia().then(() => {
+        // Disable all filters (except action plan) if displaying only action plan
+        if (this.displayOnlyActionPlan) {
+          this.toggleMainContent();
+          this.toggleContextContent();
+          this.toggleFundamentalPrinciplesContent();
+          this.toggleRisksContent();
+          this.toggleRisksOverviewContent();
+          this.toggleRisksCartographyContent();
+        }
+      });
     });
+  }
+
+  downloadAllGraphsAsImages() {
+    this.getActionPlanOverviewImg();
+    this.getRisksOverviewImg();
+    this.getRisksCartographyImg();
+  }
+
+  getActionPlanOverviewImg() {
+    setTimeout(() => {
+      const actionPlanOverviewImg = document.querySelector('#actionPlanOverviewImg');
+      if (actionPlanOverviewImg) {
+        html2canvas(actionPlanOverviewImg, {scale: 1.4}).then(canvas => {
+          if (canvas) {
+            const img = canvas.toDataURL();
+            this.downloadURI(img, 'actionPlanOverview.png');
+          }
+        });
+      }
+    }, 500);
+  }
+
+  getRisksOverviewImg() {
+    setTimeout(() => {
+        const mysvg = document.getElementById('risksOverviewSvg');
+        if (mysvg) {
+          saveSvgAsPng(mysvg, 'risksOverview.png', {
+            backgroundColor: 'white',
+            scale: 1.4,
+            encoderOptions: 1,
+            width: 760});
+        }
+    }, 500);
+  }
+
+  getRisksCartographyImg() {
+    setTimeout(() => {
+      const risksCartographyImg = document.querySelector('#risksCartographyImg');
+      if (risksCartographyImg) {
+        html2canvas(risksCartographyImg, {scale: 1.4}).then(canvas => {
+          if (canvas) {
+            const img = canvas.toDataURL();
+            this.downloadURI(img, 'risksCartography.png');
+          }
+        });
+      }
+    }, 500);
+  }
+
+  downloadURI(uri, name) {
+    const link = document.createElement('a');
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+  }
+
+  /**
+   * Display or hide the main Pia data.
+   * @memberof SummaryComponent
+   */
+  toggleMainContent() {
+    this.displayMainPiaData = !this.displayMainPiaData;
+  }
+
+  /**
+   * Display or hide the main Pia data.
+   * @memberof SummaryComponent
+   */
+  toggleContextContent() {
+    setTimeout(() => {
+      const contextSection = this.el.nativeElement.querySelector('.section-1');
+      contextSection.classList.toggle('hide');
+    }, 100);
+  }
+
+  /**
+   * Display or hide the main Pia data.
+   * @memberof SummaryComponent
+   */
+  toggleFundamentalPrinciplesContent() {
+    setTimeout(() => {
+      const fundamentalPrinciplesSection = this.el.nativeElement.querySelector('.section-2');
+      fundamentalPrinciplesSection.classList.toggle('hide');
+    }, 100);
+  }
+
+  /**
+   * Display or hide the main Pia data.
+   * @memberof SummaryComponent
+   */
+  toggleRisksContent() {
+    setTimeout(() => {
+      const risksSection = this.el.nativeElement.querySelector('.section-3');
+      risksSection.classList.toggle('hide');
+    }, 100);
+  }
+
+  /**
+   * Display or hide the action plan.
+   * @memberof SummaryComponent
+   */
+  toggleActionPlanContent() {
+    this.displayActionPlan = !this.displayActionPlan;
+  }
+
+  /**
+   * Display or hide the risks overview for the current PIA.
+   * @memberof SummaryComponent
+   */
+  toggleRisksOverviewContent() {
+    this.displayRisksOverview = !this.displayRisksOverview;
+  }
+
+  /**
+   * Display or hide the risks cartography for the current PIA.
+   * @memberof SummaryComponent
+   */
+  toggleRisksCartographyContent() {
+    this.displayRisksCartography = !this.displayRisksCartography;
   }
 
   /**
    * Prepare and display the PIA information
    * @memberof SummaryComponent
    */
-  showPia() {
+  async showPia() {
     this.prepareHeader();
-
     this._actionPlanService.data = this.dataNav;
     this._actionPlanService.pia = this.pia;
 
@@ -60,47 +209,61 @@ export class SummaryComponent implements OnInit {
     this._attachmentsService.listAttachments().then(() => {
       const attachmentElement = { title: 'summary.attachments', subtitle: null, data: [] };
       this._attachmentsService.attachments.forEach((attachment) => {
-        attachmentElement.data.push({ content: attachment.name });
+        attachmentElement.data.push({
+          content: attachment.name,
+          comment: attachment.comment
+        });
       });
       this.content.push(attachmentElement);
     });
 
-    this.getJsonInfo().then(() => {
-      for (const index in this.allData) {
-        if (this.allData.hasOwnProperty(index)) {
-          const element = this.allData[index];
-          const el = { title: element.sectionTitle,
-                       subtitle: element.itemTitle,
-                       data: [],
-                       evaluation: element.evaluation ? element.evaluation : null };
-          if (element.questions.length > 0) {
-            element.questions.forEach(question => {
-              el.data.push({
-                title: question.title,
-                content: question.content,
-                evaluation: question.evaluation ? question.evaluation : null
-              });
-            });
-          }
-          this.content.push(el);
-        }
-      }
-    });
-    this._actionPlanService.listActionPlan(this._translateService);
+    this.getJsonInfo();
+    this._actionPlanService.listActionPlan();
   }
 
   /**
-   * Prepare and display the ActionPlan information
+   * Prepare and display the ActionPlan information.
    * @memberof SummaryComponent
    */
   showActionPlan() {
     this._actionPlanService.data = this.dataNav;
     this._actionPlanService.pia = this.pia;
-    this._actionPlanService.listActionPlan(this._translateService);
+    this._actionPlanService.listActionPlan();
   }
 
   /**
-   * Get PIA information
+   * Get a csv document.
+   * @protected
+   * @returns {Object}
+   * @memberof Angular2Csv
+   */
+  public async download() {
+    const options = {
+      fieldSeparator: ';',
+      quoteStrings: '"',
+      decimalseparator: '.',
+      showLabels: true,
+      showTitle: false,
+      useBom: true,
+      headers: [
+        this._translateService.instant('summary.csv_section'),
+        this._translateService.instant('summary.csv_title_object'),
+        this._translateService.instant('summary.csv_action_plan_comment'),
+        this._translateService.instant('summary.csv_evaluation_comment'),
+        this._translateService.instant('summary.csv_implement_date'),
+        this._translateService.instant('summary.csv_people_in_charge')
+      ]
+    }
+
+    this._actionPlanService.getCsv();
+
+    return new Angular2Csv(this._actionPlanService.csvRows,
+                           this._translateService.instant('summary.csv_file_title'),
+                           options);
+  }
+
+  /**
+   * Get PIA information.
    * @private
    * @memberof SummaryComponent
    */
@@ -131,13 +294,20 @@ export class SummaryComponent implements OnInit {
         content: this.pia.validator_name
       });
     }
+    if (this.pia.created_at) {
+      el.data.push({
+        title: 'summary.creation_date',
+        type: 'date',
+        content: this.pia.created_at
+      });
+    }
     if (this.pia.dpos_names && this.pia.dpos_names.length > 0) {
       el.data.push({
         title: 'summary.dpo_name',
         content: this.pia.dpos_names
       });
     }
-    if ( this.pia.dpo_status >= 0) {
+    if (this.pia.dpo_status && this.pia.dpo_status.length > 0) {
       el.data.push({
         title: 'summary.dpo_status',
         content: this.pia.getOpinionsStatus(this.pia.dpo_status.toString())
@@ -202,130 +372,132 @@ export class SummaryComponent implements OnInit {
         content: this.pia.rejected_reason
       });
     }
-    if (this.pia.created_at) {
-      el.data.push({
-        title: 'summary.creation_date',
-        type: 'date',
-        content: this.pia.created_at
-      });
-    }
+
     this.content.push(el);
   }
 
   /**
-   * Get information from the JSON file
+   * Get information from the JSON file.
    * @returns {Promise}
    * @private
    * @memberof SummaryComponent
    */
   private async getJsonInfo() {
-    this.allData = [];
-    return new Promise((resolve, reject) => {
-      if (this._piaService.data) {
-        this._piaService.data.sections.forEach(async (section) => {
-          section.items.forEach(async (item) => {
-            const ref = section.id.toString() + '.' + item.id.toString();
-            let evaluation = null;
-            if (item.evaluation_mode === 'item') {
-              const evaluationModel = new Evaluation();
-              const exist = await evaluationModel.getByReference(this.pia.id, ref);
-              if (exist) {
-                evaluation = {
-                  'title': evaluationModel.getStatusName(),
-                  'action_plan_comment': evaluationModel.action_plan_comment,
-                  'evaluation_comment': evaluationModel.evaluation_comment,
-                  'gauges': {
-                    'riskName': { value: this._translateService.instant('sections.3.items.' + item.id + '.title') },
-                    'seriousness': evaluationModel.gauges ? evaluationModel.gauges.x : null,
-                    'likelihood': evaluationModel.gauges ? evaluationModel.gauges.y : null
-                  }
-                };
+    this.allData = {}
+    this._piaService.data.sections.forEach(async (section) => {
+      this.allData[section.id] = {};
+      section.items.forEach(async (item) => {
+        this.allData[section.id][item.id] = {}
+        const ref = section.id.toString() + '.' + item.id.toString();
+
+        // Measure
+        if (item.is_measure) {
+          this.allData[section.id][item.id] = []
+          const measuresModel = new Measure();
+          measuresModel.pia_id = this.pia.id;
+          const entries: any = await measuresModel.findAll();
+          entries.forEach(async (measure) => {
+            /* Completed measures */
+            if (measure.title !== undefined && measure.content !== undefined) {
+              let evaluation = null;
+              if (item.evaluation_mode === 'question') {
+                evaluation = await this.getEvaluation(section.id, item.id, ref + '.' + measure.id);
               }
-            }
-            this.allData[ref] = {
-              sectionTitle: section.title,
-              itemTitle: item.title,
-              evaluation: evaluation,
-              questions: []
-            }
-            if (item.is_measure) {
-              const measuresModel = new Measure();
-              measuresModel.pia_id = this.pia.id;
-              const entries: any = await measuresModel.findAll();
-              entries.forEach(async (measure) => {
-                if (measure.title !== undefined && measure.content !== undefined) {
-                  evaluation = null;
-                  if (item.evaluation_mode === 'question') {
-                    const evaluationModel = new Evaluation();
-                    const exist = await evaluationModel.getByReference(this.pia.id, ref + '.' + measure.id);
-                    if (exist) {
-                      evaluation = {
-                        'title': evaluationModel.getStatusName(),
-                        'action_plan_comment': evaluationModel.action_plan_comment,
-                        'evaluation_comment': evaluationModel.evaluation_comment,
-                        'gauges': {
-                          'riskName': { value: this._translateService.instant('sections.3.items.' + item.id + '.title') },
-                          'seriousness': evaluationModel.gauges ? evaluationModel.gauges.x : null,
-                          'likelihood': evaluationModel.gauges ? evaluationModel.gauges.y : null
-                        }
-                      };
-                    }
-                  }
-                  this.allData[ref]['questions'].push({
-                    title: measure.title,
-                    content: measure.content,
-                    evaluation: evaluation
-                  });
-                }
-              });
-            } else if (item.questions) {
-              item.questions.forEach(async (question) => {
-                const answerModel = new Answer();
-                await answerModel.getByReferenceAndPia(this.pia.id, question.id);
-                if (answerModel.data) {
-                  const content = [];
-                  if (answerModel.data.gauge && answerModel.data.gauge > 0) {
-                    content.push(this._translateService.instant(this.pia.getGaugeName(answerModel.data.gauge)));
-                  }
-                  if (answerModel.data.text && answerModel.data.text.length > 0) {
-                    content.push(answerModel.data.text);
-                  }
-                  if (answerModel.data.list && answerModel.data.list.length > 0) {
-                    content.push(answerModel.data.list.join(', '));
-                  }
-                  if (content.length > 0) {
-                    evaluation = null;
-                    if (item.evaluation_mode === 'question') {
-                      const evaluationModel = new Evaluation();
-                      const exist = await evaluationModel.getByReference(this.pia.id, ref + '.' + question.id);
-                      if (exist) {
-                        evaluation = {
-                          'title': evaluationModel.getStatusName(),
-                          'action_plan_comment': evaluationModel.action_plan_comment,
-                          'evaluation_comment': evaluationModel.evaluation_comment,
-                          'gauges': {
-                            'riskName': { value: this._translateService.instant('sections.3.items.' + item.id + '.title') },
-                            'seriousness': evaluationModel.gauges ? evaluationModel.gauges.x : null,
-                            'likelihood': evaluationModel.gauges ? evaluationModel.gauges.y : null
-                          }
-                        };
-                      }
-                    }
-                    this.allData[ref]['questions'].push({
-                      title: question.title,
-                      content: content.join(', '),
-                      evaluation: evaluation
-                    });
-                  }
-                }
-                if (section.id === 3 && item.id === 4) {
-                  resolve();
-                }
-              });
+              this.allData[section.id][item.id].push({
+                title: measure.title,
+                content: measure.content,
+                evaluation: evaluation
+              })
             }
           });
-        });
-      }
+        } else if (item.questions) { // Question
+          item.questions.forEach(async (question) => {
+            this.allData[section.id][item.id][question.id] = {}
+            const answerModel = new Answer();
+            await answerModel.getByReferenceAndPia(this.pia.id, question.id);
+
+            /* An answer exists */
+            if (answerModel.data) {
+              const content = [];
+              if (answerModel.data.gauge && answerModel.data.gauge > 0) {
+                content.push(this._translateService.instant(this.pia.getGaugeName(answerModel.data.gauge)));
+              }
+              if (answerModel.data.text && answerModel.data.text.length > 0) {
+                content.push(answerModel.data.text);
+              }
+              if (answerModel.data.list && answerModel.data.list.length > 0) {
+                content.push(answerModel.data.list.join(', '));
+              }
+              if (content.length > 0) {
+                if (item.evaluation_mode === 'question') {
+                  const evaluation = await this.getEvaluation(section.id, item.id, ref + '.' + question.id);
+                  this.allData[section.id][item.id][question.id].evaluation = evaluation;
+                }
+                this.allData[section.id][item.id][question.id].content = content.join(', ')
+              }
+            }
+          });
+        }
+        if (item.evaluation_mode === 'item') {
+          const evaluation = await this.getEvaluation(section.id, item.id, ref);
+          this.allData[section.id][item.id]['evaluation_item'] = evaluation;
+        }
+      });
     });
   }
+
+  /**
+   * Get an evaluation by reference.
+   * @private
+   * @param {string} section_id - The section id.
+   * @param {string} item_id - The item id.
+   * @param {string} ref - The reference.
+   * @returns {Promise}
+   * @memberof SummaryComponent
+   */
+  private async getEvaluation(section_id: string, item_id: string, ref: string) {
+    return new Promise(async (resolve, reject) => {
+      let evaluation = null;
+      const evaluationModel = new Evaluation();
+      const exist = await evaluationModel.getByReference(this.pia.id, ref);
+      if (exist) {
+        evaluation = {
+          'title': evaluationModel.getStatusName(),
+          'action_plan_comment': evaluationModel.action_plan_comment,
+          'evaluation_comment': evaluationModel.evaluation_comment,
+          'gauges': {
+            'riskName': { value: this._translateService.instant('sections.' + section_id + '.items.' + item_id + '.title') },
+            'seriousness': evaluationModel.gauges ? evaluationModel.gauges.x : null,
+            'likelihood': evaluationModel.gauges ? evaluationModel.gauges.y : null
+          }
+        };
+      }
+      resolve(evaluation);
+    });
+  }
+
+  /**
+   * Select all text from page.
+   * @memberof Angular2Csv
+   */
+  getTextSelection() {
+    const actionPlanOverview = document.getElementById('actionPlanOverviewImg');
+    if (actionPlanOverview) {
+      actionPlanOverview.classList.toggle('hide');
+    }
+    const select = document.getElementById('force-select-all');
+    select.focus();
+    const range = document.createRange();
+    range.selectNodeContents(select);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('Copy', false, range);
+    document.execCommand('SelectText', false , range);
+    this._modalService.openModal('modal-select-text-pia');
+    if (actionPlanOverview) {
+      actionPlanOverview.classList.toggle('hide');
+    }
+  }
 }
+

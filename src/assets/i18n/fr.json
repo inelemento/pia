@@ -14,8 +14,17 @@
     "knowledge_base_link": "Base de connaissances",
     "pia_example_link": "Exemple de PIA",
     "languages": {
+      "official_translation": "Version originelle",
+      "cnil_translations": "Traductions fournies par la CNIL",
+      "community_translations": "Traductions fournies par la communauté",
       "fr": "Français",
-      "en": "Anglais"
+      "en": "English",
+      "cz": "Česky",
+      "it": "Italiaans",
+      "nl": "Nederlands",
+      "pl": "Polski",
+      "de": "Deutsch",
+      "es": "Español"
     },
     "tools": {
       "title": "Outils",
@@ -64,7 +73,6 @@
       "placeholder_start": "Tous les champs doivent être remplis",
       "item": {
         "tools": {
-          "edit": "Éditer les informations",
           "export": "Exporter",
           "more_options": "Plus d'options",
           "duplicate": "Dupliquer",
@@ -73,7 +81,7 @@
           "remove": "Supprimer"
         },
         "edit_pia": "Éditer le PIA",
-        "save_pia": "Sauvegarder"
+        "consult_pia": "Consulter le PIA"
       }
     },
     "lists": {
@@ -88,6 +96,7 @@
       "column_actions": "Actions",
       "item": {
         "tools": {
+          "consult": "Consulter",
           "edit": "Éditer",
           "export": "Exporter",
           "duplicate": "Dupliquer",
@@ -109,7 +118,9 @@
     },
     "header": {
       "preview": "Aperçu",
-      "display_action_plan": "Afficher le<br>plan d'action"
+      "display_action_plan": "Afficher le<br>plan d'action",
+      "edition": "Édition",
+      "evaluation": "Évaluation"
     },
     "attachments": {
       "title": "Pièces jointes",
@@ -119,7 +130,21 @@
     "sections": {
       "homepage_link": "Retourner à l'accueil",
       "validate_pia": "Valider le PIA",
-      "refuse_pia": "PIA refusé"
+      "refuse_pia": "PIA refusé",
+      "status": {
+        "evaluation": {
+          "title": "En attente d'évaluation",
+          "content": "L'évaluation de cette partie n'a pas encore commencé. Si vous souhaitez modifier les contenus en mode édition, il faut",
+          "cancel": "annuler la demande d'évaluation.",
+          "cancel_button": "Annuler la demande d'évaluation"
+        },
+        "validation": {
+          "title": "En attente de validation",
+          "content": "L'évaluation de cette partie est terminée et en attente de validation finale de l'analyse. Si vous souhaitez modifier les évaluations, il faut",
+          "cancel": "annuler la demande de validation.",
+          "cancel_button": "Annuler la demande de validation"
+        }
+      }
     },
     "footer": {
       "ask_evaluation": "Demander l'évaluation",
@@ -696,7 +721,8 @@
     "comments_count": "commentaire(s)",
     "new_comment": "Commenter",
     "placeholder_new_comment": "Laissez un commentaire",
-    "comment": "Commentaire"
+    "comment": "Commentaire",
+    "send": "Envoyer"
   },
   "questions": {
     "edit": "Éditer la question",
@@ -711,14 +737,14 @@
   "evaluations": {
     "title": "Évaluation",
     "to_correct": "À corriger",
-    "placeholder_to_correct": "Les informations fournies ne sont pas suffisantes pour pouvoir les évaluer. Renvoyer en édition pour enrichir la proposition initiale.",
     "improvable": "Améliorable",
-    "placeholder_improvable": "En vue des informations fournies, des mesures additionnelles sont à ajouter afin d’améliorer la protection des données du traitement.",
     "acceptable": "Acceptable",
-    "placeholder_acceptable": "En vue des informations fournies, les mesures mises en œuvre sont suffisantes pour répondre aux exigences de protections des données.",
     "evaluation_comment": "Commentaire d'évaluation",
     "action_plan_comment": "Plan d'action / mesures correctives",
-    "placeholder_comment": "Entrez vos commentaires.",
+    "placeholder_to_correct": "Entrez vos commentaires pour expliquer pourquoi les informations fournies ne sont pas suffisantes pour pouvoir les évaluer. Cette partie sera renvoyée en édition pour enrichir la proposition initiale.",
+    "placeholder_improvable1": "Entrez vos commentaires pour expliquer quelles mesures additionnelles sont à ajouter afin d'améliorer la protection des données du traitement.",
+    "placeholder_improvable2": "Entrez vos commentaires.",
+    "placeholder_acceptable": "Entrer vos commentaires pour expliquer en quoi les mesures mises en œuvre sont suffisantes pour répondre aux exigences de protections des données.",
     "gauges": {
       "seriousness": "Prenant en compte le plan d'action, comment ré-évaluez-vous la <span class='red-highlight'>gravité de ce risque</span> ({{value}}) ?",
       "likelihood": "Prenant en compte le plan d'action, comment ré-évaluez-vous la <span class='red-highlight'>vraisemblance de ce risque</span> ({{value}}) ?",
@@ -780,12 +806,53 @@
     "title": "A propos de l'Outil PIA",
     "version_number": "Numéro de version",
     "description": "Cet outil est originellement conçu par la <a target=\"_blank\" href=\"https://www.cnil.fr\">Commission Nationale Informatique et Liberté (CNIL)</a>, l’autorité de protection des données française, dans une volonté d’accompagnement des responsables de traitement dans leur démarche de conformité au RGPD.<br>Cet outil est libre et ouvert, sous licence GPLv3. Vous pouvez y contribuer en téléchargeant le code source, en le modifiant et en le redistribuant auprès de la communauté.",
+    "translators": "L’outil est actuellement disponible en cinq langues. Les versions française et anglaise sont fournies par la CNIL. Les autres versions sont le résultat des contributions des personnes suivantes :",
+    "translators_name": "<ul><li>Néerlandais : Ruud van Driel, Manuel d’Orso ;</li><li>Tchèque : Jiří Grohmann, Manuel d’Orso ;</li><li>Italien : Manuel d’Orso, Gianluca Markos.</li><li>Polonais : Joanna Karczewska</li><li>Allemand: Kosmas Schütz</li><li>Espagnol: ylachgar</li></ul>",
+    "contribute": "Si vous souhaitez contribuer à votre tour à la traduction de l’outil ou à l’amélioration de celles déjà proposées, nous vous invitons à <a href=\"https://github.com/LINCnil/pia/tree/master/src/assets/i18n\" target=\"_blank\">lire la page décrivant les étapes à suivre</a>.",
     "licences": "Licences des librairies :"
   },
   "settings": {
     "title": "Paramètres",
     "content": "S'il vous plaît, veuillez fournir l'adresse (URL) du serveur distant :",
     "update": "Mettre à jour l'URL"
+  },
+  "validation_page": {
+    "responsible": "Responsable de la validation du PIA : ",
+    "after_reading": "Après lecture intégrale du PIA concernant le traitement des données liées à l'activité de : ",
+    "confirmation1": "Je confirme que la description du contexte de mon traitement est conforme à la réalité.",
+    "confirmation2": "Je confirme avoir pris connaissance des risques existants en fonction des mesures actuellement mises en oeuvre ou prévues.",
+    "confirmation3": "Je valide les mesures correctives indiquées.",
+    "confirmation4": "Je m'engage à mettre en oeuvre dans les plus brefs délais les mesures correctives indiquées.",
+    "button": {
+      "rejection": "Refuser la validation",
+      "simple_validation": "Validation simple",
+      "signed_validation": "Faire signer le PIA par le responsable"
+    },
+    "mandatory_fields": "Tous les champs doivent être cochés",
+    "waiting_for_signature": "En attente de la signature du rapport PIA",
+    "validated_pia_with_signature": "Validé",
+    "add_signed_pia": "Ajouter le rapport PIA signé",
+    "remove_attachment": "Supprimer",
+    "latest_signed_attachment": "Dernière pièce jointe signée",
+    "signed_attachments_history": "Historique des pièces jointes signées",
+    "tools": {
+      "dashboard": "Accueil",
+      "display_pia": "Afficher le rapport",
+      "action_plan": "Plan d'action"
+    }
+  },
+  "rejection_page": {
+    "title": "Historique de validation",
+    "rejection_reason": "Motif du refus",
+    "rejection_reason_placeholder": "Décrivez les motifs de refus de validation du PIA.",
+    "applied_adjustments": "Modifications apportées",
+    "applied_adjustments_placeholder": "Décrivez les modifications apportées au PIA.",
+    "previous_rejection": "Refus précédent",
+    "button": {
+      "abandon_treatment": "Abandonner le traitement",
+      "reject_pia": "Refuser le PIA",
+      "send_for_validation": "Renvoyer pour validation"
+    }
   },
   "misc": {
     "display": "Afficher / Masquer"
@@ -795,22 +862,30 @@
     "archive": "Archiver",
     "close": "Fermer",
     "continue": "Continuer",
+    "start_evaluation": "Commencer l'évaluation",
     "back_to_home": "Retour à l'accueil",
     "simple_pia_validation": {
-      "content": "Le PIA vient d'être validé."
+      "content": "Vous venez de valider l'analyse."
+    },
+    "completed_edition": {
+      "content": "Toutes les parties sont éditées.<br>L'analyse doit maintenant être évaluée."
+    },
+    "completed_evaluation": {
+      "content": "Toutes les parties sont évaluées.<br>L'analyse peut être validée."
     },
     "update_server_url": {
       "content": "L'adresse du serveur à été mise à jour."
     },
     "signed_pia_validation": {
-      "content": "<span class='strong'>Le PIA est accepté</span><br>Finalisez la validation du PIA en attachant<br>en pièce jointe le rapport signé par le responsable.",
-      "download_pia": "Télécharger le rapport PIA"
+      "content": "Pour finaliser la validation de l'analyse,<br>attachez en pièce-jointe le rapport signé.",
+      "download_pia": "Afficher le rapport"
     },
     "abandon_pia": {
-      "content": "Êtes-vous sûr de vouloir<br>abandonner ce traitement ?"
+      "content": "Souhaitez-vous abandonner<br>le traitement ?",
+      "additional_text": "L'archivage n'est pas définitif et vous pouvez<br>reprendre l'analyse plus tard si besoin."
     },
     "refuse_pia": {
-      "content": "<span class='strong'>PIA refusé,</span><br>Plusieurs champs doivent être corrigés.<br>Retour au mode d'évaluation<br>pour apporter des corrections."
+      "content": "Suite à votre refus, l'analyse est<br> renvoyée en évaluation pour effectuer<br>les modifications nécessaires."
     },
     "same_comment": {
       "content": "<span class='strong'>Attention,</span><br>Veuillez saisir un commentaire différent du dernier enregistré."
@@ -824,16 +899,16 @@
       "keep": "Conserver cette <br>mesure"
     },
     "ask_for_evaluation": {
-      "content": "<span class='strong'>Bravo,</span><br>la partie est désormais<br>disponible pour évaluation"
+      "content": "La partie est disponible<br>pour évaluation."
     },
     "validate_evaluation": {
-      "content": "<span class='strong'>Bravo,</span><br>en attente de la validation <br>globale du PIA"
+      "content": "La partie est prête pour<br>la validation de l'analyse."
     },
     "validate_evaluation_to_correct": {
       "content": "Désolé,<br>Plusieurs champs doivent être corrigés.<br>Retour au mode d'édition<br>pour apporter des corrections."
     },
     "declare_measures": {
-      "content": "Désolé,<br>Avant d'évaluer les risques,<br>vous devez déclarer les mesures<br>existantes ou prévues",
+      "content": "Avant d'évaluer les risques,<br>vous devez déclarer les mesures<br>existantes ou prévues.",
       "declare": "Déclarer les mesures existantes ou prévues"
     },
     "remove_pia": {
@@ -843,20 +918,60 @@
     "remove_attachment": {
       "content": "<span class='strong'>Attention,</span><br>Êtes-vous sûr de vouloir<br>supprimer cette pièce jointe ?",
       "keep": "Conserver",
-      "remove": "Supprimer"
+      "remove": "Supprimer",
+      "comment": "Commentaires"
+    },
+    "action_plan_no_evaluation": {
+      "content": "Veuillez commencer l'évaluation de l'analyse pour génerer le plan d'actions.",
+      "review_section": "Évaluer une section"
+    },
+    "dpo_missing_evaluations": {
+      "content": "Veuillez compléter l'évaluation de l'analyse pour accéder à la page des DPO.",
+      "review_section": "Évaluer une section",
+      "remove": "Supprimer",
+      "comment": "Commentaire"
+    },
+    "modal_select_text_pia": {
+      "content": "Le contenu du Rapport PIA a été copié dans votre presse-papier."
+    },
+    "back_to_edition": {
+      "content": "La partie est renvoyée en édition,<br>des informations doivent être ajoutées<br>pour permettre son évaluation."
+    },
+    "back_to_evaluation": {
+      "content": "La partie est renvoyée en évaluation,<br>des informations doivent être réévaluées<br>pour permettre sa validation."
     }
   },
   "summary": {
     "previous_page": "Retour à la page précédente",
     "print": "Imprimer",
+    "copy_to_clipboard": "Copier dans le presse-papier",
+    "download_images": "Télécharger les images",
+    "download_csv": "Télécharger un export CSV",
+    "csv_section": "Section",
+    "csv_title_object": "Titre de l'objet concerné",
+    "csv_action_plan_comment": "Commentaires du plan d'actions",
+    "csv_evaluation_comment": "Commentaires d'évaluation",
+    "csv_file_title": "plan-d-action",
+    "csv_implement_date": "Date d'implémentation estimée",
+    "csv_people_in_charge": "Responsable de la mise en oeuvre",
+    "display_filters": {
+      "title": "Filtres d'affichage",
+      "main_content": "Afficher la section \"Informations du PIA\"",
+      "context_content": "Afficher la section \"Contexte\"",
+      "principles_content": "Afficher la section \"Principes fondamentaux\"",
+      "risks_content": "Afficher la section \"Risques\"",
+      "action_plan_content": " Afficher le plan d'action",
+      "risks_overview_content": "Afficher la vue d'ensemble des risques",
+      "risks_cartography_content": "Afficher la cartographie des risques"
+    },
     "title": "Informations du PIA",
     "pia_name": "Nom du PIA",
     "pia_author": "Nom de l'auteur",
     "pia_assessor": "Nom de l'évaluateur",
     "pia_validator": "Nom du validateur",
-    "content_choice":  {
-      "0": "Le traitement pourrait être mis en oeuvre.",
-      "1": "Le traitement ne devrait pas être mis en oeuvre."
+    "content_choice": {
+      "0": "Le traitement ne devrait pas être mis en oeuvre.",
+      "1": "Le traitement pourrait être mis en oeuvre."
     },
     "dpo_name": "Nom du DPD",
     "dpo_status": "Statut du DPD",
@@ -886,11 +1001,29 @@
       "measures": "Mesures existantes ou prévues",
       "risks": "Risques",
       "no_action_plan": "Aucun plan d'action enregistré."
-    }
+    },
+    "risks_overview_title": "Vue d'ensemble des risques",
+    "risks_cartography_title": "Cartographie des risques"
   },
   "errors": {
     "title": "Page introuvable.",
     "content": "Si vous rencontrez d’autres problèmes ou si vous avez des suggestions d’amélioration,<br>vous pouvez nous les faire remonter via ce formulaire : <a href=\"https://www.cnil.fr/fr/webform/vos-retours-sur-loutil-pia\" target=\"_blank\">https://www.cnil.fr/fr/webform/vos-retours-sur-loutil-pia</a>"
+  },
+  "overview-risks": {
+    "potential_impacts": "Impacts potentiels",
+    "threat": "Menaces",
+    "sources": "Sources",
+    "measures": "Mesures",
+    "negligible": "Négligeable",
+    "limited": "Limitée",
+    "important": "Importante",
+    "maximal": "Maximale",
+    "risk-access_x": "Gravité",
+    "risk-access_y": "Vraisemblance",
+    "risk-change_x": "Gravité",
+    "risk-change_y": "Vraisemblance",
+    "risk-disappearance_x": "Gravité",
+    "risk-disappearance_y": "Vraisemblance"
   },
   "cartography": {
     "negligible": "Négligeable",
@@ -1024,7 +1157,7 @@
               "placeholder": "Décrivez l'information qu'il est prévu d'apporter aux personnes concernées et les moyens choisis pour cette information."
             },
             "2": {
-              "title": "Comment le consentement des personnes concernées est-il obtenu ?",
+              "title": "Si applicable, comment le consentement des personnes concernées est-il obtenu ?",
               "short_title": "Recueil du consentement",
               "placeholder": "Décrivez les modalités prévues pour obtenir le consentement des personnes concernées."
             },
@@ -1070,27 +1203,27 @@
           "short_help": "Analysez les causes et conséquences d'un accès illégitime à des données, et estimez sa gravité et sa vraisemblance.",
           "questions": {
             "1": {
-              "title": "Quels pourraient être les principaux impacts sur les personnes concernées si le risque se produisait ?",
+              "title": "Quels pourraient être les principaux <span class='green-highlight'>impacts sur les personnes concernées</span> si le risque se produisait ?",
               "placeholder": "Saisissez les impacts potentiels \u002B"
             },
             "2": {
-              "title": "Quelles sont les principales menaces qui pourraient permettre la réalisation du risque ?",
+              "title": "Quelles sont les principales <span class='green-highlight'>menaces</span> qui pourraient permettre la réalisation du risque ?",
               "placeholder": "Saisissez les menaces \u002B"
             },
             "3": {
-              "title": "Quelles sources de risques pourraient-elles en être à l'origine ?",
+              "title": "Quelles <span class='green-highlight'>sources</span> de risques pourraient-elles en être à l'origine ?",
               "placeholder": "Saisissez les sources de risques \u002B"
             },
             "4": {
-              "title": "Quelles sont les mesures, parmi celles identifiées, qui contribuent à traiter le risque ?",
+              "title": "Quelles sont les <span class='green-highlight'>mesures</span>, parmi celles identifiées, qui contribuent à traiter le risque ?",
               "placeholder": "Cliquez ici pour sélectionner les mesures contribuant à traiter ce risque."
             },
             "5": {
-              "title": "Comment estimez-vous la gravité du risque, notamment en fonction des impacts potentiels et des mesures prévues ?",
+              "title": "Comment estimez-vous la <span class='green-highlight'>gravité du risque</span>, notamment en fonction des impacts potentiels et des mesures prévues ?",
               "placeholder": "Justifiez ici la gravité estimée."
             },
             "6": {
-              "title": "Comment estimez-vous la vraisemblance du risque, notamment au regard des menaces, des sources de risques et des mesures prévues ?",
+              "title": "Comment estimez-vous la <span class='green-highlight'>vraisemblance du risque</span>, notamment au regard des menaces, des sources de risques et des mesures prévues ?",
               "placeholder": "Justifiez ici la vraisemblance estimée."
             }
           }
@@ -1100,27 +1233,27 @@
           "short_help": "Analysez les causes et conséquences d'une modification non désirée de données, et estimez sa gravité et sa vraisemblance.",
           "questions": {
             "1": {
-              "title": "Quels pourraient être les principaux impacts sur les personnes concernées si le risque se produisait ?",
+              "title": "Quels pourraient être les principaux <span class='green-highlight'>impacts sur les personnes concernées</span> si le risque se produisait ?",
               "placeholder": "Saisissez les impacts potentiels \u002B"
             },
             "2": {
-              "title": "Quelles sont les principales menaces qui pourraient permettre la réalisation du risque ?",
+              "title": "Quelles sont les principales <span class='green-highlight'>menaces</span> qui pourraient permettre la réalisation du risque ?",
               "placeholder": "Saisissez les menaces \u002B"
             },
             "3": {
-              "title": "Quelles sources de risques pourraient-elles en être à l'origine ?",
+              "title": "Quelles <span class='green-highlight'>sources</span> de risques pourraient-elles en être à l'origine ?",
               "placeholder": "Saisissez les sources de risques \u002B"
             },
             "4": {
-              "title": "Quelles sont les mesures, parmi celles identifiées, qui contribuent à traiter le risque ?",
+              "title": "Quelles sont les <span class='green-highlight'>mesures</span>, parmi celles identifiées, qui contribuent à traiter le risque ?",
               "placeholder": "Cliquez ici pour sélectionner les mesures contribuant à traiter ce risque."
             },
             "5": {
-              "title": "Comment estimez-vous la gravité du risque, notamment en fonction des impacts potentiels et des mesures prévues ?",
+              "title": "Comment estimez-vous la <span class='green-highlight'>gravité du risque</span>, notamment en fonction des impacts potentiels et des mesures prévues ?",
               "placeholder": "Justifiez ici la gravité estimée."
             },
             "6": {
-              "title": "Comment estimez-vous la vraisemblance du risque, notamment au regard des menaces, des sources de risques et des mesures prévues ?",
+              "title": "Comment estimez-vous la <span class='green-highlight'>vraisemblance du risque</span>, notamment au regard des menaces, des sources de risques et des mesures prévues ?",
               "placeholder": "Justifiez ici la vraisemblance estimée."
             }
           }
@@ -1130,27 +1263,27 @@
           "short_help": "Analysez les causes et conséquences d'une disparition de données, et estimez sa gravité et sa vraisemblance.",
           "questions": {
             "1": {
-              "title": "Quels pourraient être les principaux impacts sur les personnes concernées si le risque se produisait ?",
+              "title": "Quels pourraient être les principaux <span class='green-highlight'>impacts sur les personnes concernées</span> si le risque se produisait ?",
               "placeholder": "Saisissez les impacts potentiels \u002B"
             },
             "2": {
-              "title": "Quelles sont les principales menaces qui pourraient permettre la réalisation du risque ?",
+              "title": "Quelles sont les principales <span class='green-highlight'>menaces</span> qui pourraient permettre la réalisation du risque ?",
               "placeholder": "Saisissez les menaces \u002B"
             },
             "3": {
-              "title": "Quelles sources de risques pourraient-elles en être à l'origine ?",
+              "title": "Quelles <span class='green-highlight'>sources</span> de risques pourraient-elles en être à l'origine ?",
               "placeholder": "Saisissez les sources de risques \u002B"
             },
             "4": {
-              "title": "Quelles sont les mesures, parmi celles identifiées, qui contribuent à traiter le risque ?",
+              "title": "Quelles sont les <span class='green-highlight'>mesures</span>, parmi celles identifiées, qui contribuent à traiter le risque ?",
               "placeholder": "Cliquez ici pour sélectionner les mesures contribuant à traiter ce risque."
             },
             "5": {
-              "title": "Comment estimez-vous la gravité du risque, notamment en fonction des impacts potentiels et des mesures prévues ?",
+              "title": "Comment estimez-vous la <span class='green-highlight'>gravité du risque</span>, notamment en fonction des impacts potentiels et des mesures prévues ?",
               "placeholder": "Justifiez ici la gravité estimée."
             },
             "6": {
-              "title": "Comment estimez-vous la vraisemblance du risque, notamment au regard des menaces, des sources de risques et des mesures prévues ?",
+              "title": "Comment estimez-vous la <span class='green-highlight'>vraisemblance du risque</span>, notamment au regard des menaces, des sources de risques et des mesures prévues ?",
               "placeholder": "Justifiez ici la vraisemblance estimée."
             }
           }
@@ -1171,11 +1304,17 @@
         },
         "2": {
           "title": "Plan d'action",
-          "short_help": "Planifiez en détail la mise en œuvre des mesures complémentaires déterminées au cours du PIA."
+          "short_help": "Planifiez en détail la mise en œuvre des mesures complémentaires déterminées au cours du PIA. Cette partie est automatiquement mise à jour en fonction des évaluations faites de chaque élément composant l'analyse d'impact."
         },
         "3": {
           "title": "Avis du DPD et des personnes concernées",
           "short_help": "Présentez le conseil de la personne en charge des aspects informatique et libertés (délégué à la protection des données s'il existe). Présentez l'avis des personnes concernées ou de leurs représentants."
+        },
+        "4": {
+          "title": "Valider le PIA"
+        },
+        "5": {
+          "title": "PIA refusé"
         }
       }
     }

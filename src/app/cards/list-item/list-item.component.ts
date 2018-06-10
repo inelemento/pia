@@ -16,7 +16,7 @@ export class ListItemComponent implements OnInit {
 
   constructor(private router: Router,
               private route: ActivatedRoute,
-              private _piaService: PiaService,
+              public _piaService: PiaService,
               private _modalsService: ModalsService) { }
 
   ngOnInit() {
@@ -27,17 +27,33 @@ export class ListItemComponent implements OnInit {
     });
   }
 
+  /**
+   * Focuses out field and update PIA.
+   * @param {string} attribute - Attribute of the PIA.
+   * @param {*} event - Any Event.
+   * @memberof ListItemComponent
+   */
   onFocusOut(attribute: string, event: any) {
     const text = event.target.innerText;
     this.pia[attribute] = text;
     this.pia.update();
   }
 
+  /**
+   * Opens the modal to confirm deletion of a PIA
+   * @param {string} id - The PIA id.
+   * @memberof ListItemComponent
+   */
   removePia(id: string) {
     localStorage.setItem('pia-id', id);
     this._modalsService.openModal('modal-remove-pia');
   }
 
+  /**
+   * Export the PIA
+   * @param {number} id - The PIA id.
+   * @memberof ListItemComponent
+   */
   export(id: number) {
     this._piaService.export(id);
   }
